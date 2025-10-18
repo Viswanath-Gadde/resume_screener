@@ -3,3 +3,5 @@ nltk
 scikit-learn
 pandas
 PyPDF2
+re
+string
