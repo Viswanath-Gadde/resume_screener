@@ -12,5 +12,5 @@ def main():
     st.title("Resume Screening Application")
     st.file_uploader("Upload Your Resume",type=["pdf","txt"])
     
-if __name__=="--main__":
+if __name__=="__main__":
     main()
