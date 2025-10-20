@@ -110,17 +110,27 @@ def clean(text):
     return text
 
 # ===== AI RESUME ANALYSIS FUNCTION =====
+# ===== AI RESUME ANALYSIS FUNCTION =====
 def analyze_resume_with_ai(text):
     if not client:
         return "⚠ Gemini AI not connected. Add GEMINI_API_KEY in .env"
 
     prompt = f"""
-    You are a professional Resume Reviewer and HR Expert.
+    You are a professional HR expert and resume analyzer.
 
-    Analyze the resume
+    Analyze the following resume and extract structured information:
+
+    1. Skills: List all technical and soft skills.
+    2. Projects: List projects with title and 1-2 line description.
+    3. Experience / Internships: List roles, companies, duration.
+    4. Education: Degrees, universities, years.
+    5. Certifications / Achievements: Any relevant certifications or awards.
+    6. Suggest any missing sections or skills relevant to a professional resume.
 
     Resume Content:
     {text[:2500]}
+
+    Output in clear bullet-point sections.
     """
 
     try:
@@ -131,6 +141,7 @@ def analyze_resume_with_ai(text):
         return response.text
     except Exception as e:
         return f"❌ AI Error: {e}"
+
 
 # ===== STREAMLIT APP =====
 def main():
