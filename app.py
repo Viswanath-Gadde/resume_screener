@@ -117,12 +117,7 @@ def analyze_resume_with_ai(text):
     prompt = f"""
     You are a professional Resume Reviewer and HR Expert.
 
-    Analyze the following resume and answer:
-    1. Key strengths and good points.
-    2. Missing important sections (e.g., Projects, Skills, Experience, Education).
-    3. Grammar or formatting issues.
-    4. How to improve this resume to meet industry standards.
-    5. Provide suggestions in bullet points.
+    Analyze the resume
 
     Resume Content:
     {text[:2500]}
