@@ -77,20 +77,18 @@
 # if __name__ == "__main__":
 #     main()
 import streamlit as st
-import pickle
 import re
 import nltk
 import os
 from PyPDF2 import PdfReader
 import string
-from google import genai   # ✅ Gemini AI
-from dotenv import load_dotenv  # ✅ To load API key from .env
+from google import genai
+from dotenv import load_dotenv
 
-# ====== INITIAL SETUP ======
+# ===== INITIAL SETUP =====
 nltk.download("punkt")
 nltk.download("stopwords")
 
-# Load environment variables safely
 load_dotenv()
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 
@@ -100,22 +98,7 @@ try:
 except:
     client = None
 
-# Load ML Model and TF-IDF
-clf = pickle.load(open("clf.pkl", "rb"))
-tfidf = pickle.load(open("tfidf.pkl", "rb"))
-
-# Job Category Mapping
-category_mapping = {
-    6: 'Data Science', 12: 'HR', 0: 'Advocate', 1: 'Arts', 24: 'Web Designing',
-    16: 'Mechanical Engineer', 22: 'Sales', 14: 'Health and fitness', 5: 'Civil Engineer',
-    15: 'Java Developer', 4: 'Business Analyst', 21: 'SAP Developer',
-    2: 'Automation Testing', 11: 'Electrical Engineering', 18: 'Operations Manager',
-    20: 'Python Developer', 8: 'DevOps Engineer', 17: 'Network Security Engineer',
-    19: 'PMO', 7: 'Database', 13: 'Hadoop', 10: 'ETL Developer',
-    9: 'DotNet Developer', 3: 'Blockchain', 23: 'Testing'
-}
-
-# ====== CLEANING FUNCTION ======
+# ===== CLEANING FUNCTION =====
 def clean(text):
     text = re.sub("https\S+\s", "", text)
     text = re.sub("@\S+", "", text)
@@ -126,20 +109,23 @@ def clean(text):
     text = re.sub('\s+', " ", text)
     return text
 
-# ====== AI AGENT SUGGESTION FUNCTION ======
-def get_resume_feedback(text, job_role):
+# ===== AI RESUME ANALYSIS FUNCTION =====
+def analyze_resume_with_ai(text):
     if not client:
-        return "⚠ Gemini AI not connected. Please set your GEMINI_API_KEY."
+        return "⚠ Gemini AI not connected. Add GEMINI_API_KEY in .env"
 
     prompt = f"""
-    You are an expert HR Resume Analyst. 
-    The resume is predicted for the role: {job_role}.
-    Resume Text: {text[:2000]}
+    You are a professional Resume Reviewer and HR Expert.
 
-    Based on this, answer:
-    1. What important skills or sections are missing in this resume?
-    2. What should be improved to match an ideal {job_role} resume?
-    3. Give bullet-point actionable suggestions (clear and short).
+    Analyze the following resume and answer:
+    1. Key strengths and good points.
+    2. Missing important sections (e.g., Projects, Skills, Experience, Education).
+    3. Grammar or formatting issues.
+    4. How to improve this resume to meet industry standards.
+    5. Provide suggestions in bullet points.
+
+    Resume Content:
+    {text[:2500]}
     """
 
     try:
@@ -149,13 +135,13 @@ def get_resume_feedback(text, job_role):
         )
         return response.text
     except Exception as e:
-        return f"❌ Error from AI: {e}"
+        return f"❌ AI Error: {e}"
 
-# ====== MAIN STREAMLIT APP ======
+# ===== STREAMLIT APP =====
 def main():
-    st.title("📄 AI-Powered Resume Screening & Suggestions")
+    st.title("📄 AI Resume Analyzer")
 
-    uploaded_file = st.file_uploader("Upload your Resume (PDF or TXT)", type=["pdf", "txt"])
+    uploaded_file = st.file_uploader("Upload Your Resume (PDF or TXT)", type=["pdf", "txt"])
 
     if uploaded_file:
         # Extract text
@@ -166,17 +152,12 @@ def main():
             text = str(uploaded_file.read(), "utf-8")
 
         cleaned_text = clean(text)
-        input_vector = tfidf.transform([cleaned_text])
-        pred_id = clf.predict(input_vector)[0]
-        job_role = category_mapping.get(pred_id, "Unknown Category")
 
-        st.success(f"✅ Predicted Job Role: **{job_role}**")
+        # AI Analysis
+        with st.spinner("🤖 Analyzing your resume..."):
+            feedback = analyze_resume_with_ai(cleaned_text)
 
-        # ===== AI Analysis Section =====
-        with st.spinner("🤖 Analyzing your resume with AI..."):
-            feedback = get_resume_feedback(cleaned_text, job_role)
-
-        st.subheader("📌 AI Suggestions for Improvement")
+        st.subheader("✅ AI Resume Feedback & Suggestions")
         st.write(feedback)
 
 if __name__ == "__main__":
